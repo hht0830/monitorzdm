@@ -33,7 +33,7 @@ public class Main {
 	public static ImageIcon change(ImageIcon image) {
 
 		int width = 150;// (int) (image.getIconWidth()*i);
-		int height = 200;// (int) (image.getIconHeight()*i);
+		int height = 150;// (int) (image.getIconHeight()*i);
 		Image img = image.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT);
 		ImageIcon image2 = new ImageIcon(img);
 
@@ -45,9 +45,9 @@ public class Main {
 		
 		try {
 			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME,JDBCConf.PASSWORD);
-			String sql = "select * from skycaiji_shenghanpic where id >? AND pic!=\" \" LIMIT 10";
+			String sql = "select * from top3 ORDER BY id DESC LIMIT 10";
 			PreparedStatement ps = c.prepareStatement(sql);
-			ps.setInt(1, index);
+
 			ps.execute();
 			rs = ps.executeQuery();
 			int id[]=new int[10];
@@ -56,7 +56,7 @@ public class Main {
 			while (rs.next()) {
 				int row = rs.getRow()-1;
 				id[row]=rs.getInt("id");
-				pic[row]=rs.getString("pic");
+				pic[row]=rs.getString("pic_url");
 				url[row]=rs.getString("url");
 				lastindex=rs.getInt("id");
 				Thread t = new Thread() {
@@ -263,12 +263,12 @@ public class Main {
 
 		for (int i = 0; i < 5; i++) {
 			l[i] = new JLabel();
-			l[i].setBounds(200 * i + 50, 50, 150, 200);
+			l[i].setBounds(200 * i + 50, 50, 150, 150);
 			f.add(l[i]);
 		}
 		for (int i = 0; i < 5; i++) {
 			l[i + 5] = new JLabel();
-			l[i + 5].setBounds(200 * i + 50, 350, 150, 200);
+			l[i + 5].setBounds(200 * i + 50, 350, 150, 150);
 			f.add(l[i + 5]);
 		}
 		setpic(l, lastindex);
