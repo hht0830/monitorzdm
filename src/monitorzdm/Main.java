@@ -1,5 +1,7 @@
 package monitorzdm;
 
+import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -17,9 +19,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class Main {
-	static MouseListener mousel[] = new MouseListener[10];
+	static MouseListener mousel[] = new MouseListener[24];
 	static int lastindex=0;
 	public static void openURL(String url) {
 		try {
@@ -32,8 +35,8 @@ public class Main {
 
 	public static ImageIcon change(ImageIcon image) {
 
-		int width = 150;// (int) (image.getIconWidth()*i);
-		int height = 150;// (int) (image.getIconHeight()*i);
+		int width = 130;// (int) (image.getIconWidth()*i);
+		int height = 130;// (int) (image.getIconHeight()*i);
 		Image img = image.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT);
 		ImageIcon image2 = new ImageIcon(img);
 
@@ -45,14 +48,14 @@ public class Main {
 		
 		try {
 			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME,JDBCConf.PASSWORD);
-			String sql = "select * from top3 ORDER BY id DESC LIMIT 10";
+			String sql = "select * from top3 ORDER BY id DESC LIMIT 24";
 			PreparedStatement ps = c.prepareStatement(sql);
 
 			ps.execute();
 			rs = ps.executeQuery();
-			int id[]=new int[10];
-			String pic[]=new String[10];
-			String url[]=new String[10];
+			int id[]=new int[24];
+			String pic[]=new String[24];
+			String url[]=new String[24];
 			while (rs.next()) {
 				int row = rs.getRow()-1;
 				id[row]=rs.getInt("id");
@@ -130,10 +133,17 @@ public class Main {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		JFrame f = new JFrame("胜寒成员");
-		JLabel l[] = new JLabel[10];
+		JFrame f = new JFrame("什么值得买TOP3小时");
+		JLabel l[] = new JLabel[24];
 		// 设置默认成员id
-
+        JPanel p1 = new JPanel();
+        p1.setLayout(new GridLayout(8, 3));
+        // 设置面板大小
+        p1.setBounds(50, 25, 1080, 1200);
+        // 设置面板背景颜色
+//      p1.setBackground(Color.GRAY);
+        
+        
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// 主窗体设置大小
@@ -142,9 +152,9 @@ public class Main {
 
 		// 主窗体中的组件设置为绝对定位
 		f.setLayout(null);
-		f.setBounds(100,100, 1080, 700);
+		f.setBounds(600,80, 1200, 1300);
 		// 按钮组件
-		JButton b = new JButton("换一批");
+		JButton b = new JButton("刷新");
 
 		// 同时设置组件的位置和大小
 		b.setBounds(400, 600, 280, 30);
@@ -253,7 +263,8 @@ public class Main {
 			}
 		});
 		// 把按钮加入到主窗体中
-		f.add(b);
+		
+		f.add(p1);
 
 		// 关闭窗体的时候，退出程序
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -261,17 +272,20 @@ public class Main {
 		f.setVisible(true);
 		f.requestFocus();
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 24; i++) {
 			l[i] = new JLabel();
-			l[i].setBounds(200 * i + 50, 50, 150, 150);
-			f.add(l[i]);
+			
+//			l[i].setBounds(200 * i + 50, 50, 150, 150);
+			p1.add(l[i]);
 		}
-		for (int i = 0; i < 5; i++) {
+/*		for (int i = 0; i < 5; i++) {
 			l[i + 5] = new JLabel();
-			l[i + 5].setBounds(200 * i + 50, 350, 150, 150);
-			f.add(l[i + 5]);
+//			l[i + 5].setBounds(200 * i + 50, 350, 150, 150);
+			p1.add(l[i + 5]);
 		}
+		*/
 		setpic(l, lastindex);
+//		p1.add(b);
 
 	}
 }
