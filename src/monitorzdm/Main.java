@@ -82,7 +82,7 @@ public class Main {
 						// 设置ImageIcon
 						l[row].setIcon(im);
 						l1[row].setText(title[row]);
-						l2[row].setText(title_2[row]+"值率："+ good[row]/(good[row]+bad[row])*100+"%");
+						l2[row].setText(title_2[row]+"值率："+ (int)(good[row]/(good[row]+bad[row])*100)+"%");
 						l[row].removeMouseListener(mousel[row]);
 						MouseListener ml=new MouseListener() {
 
