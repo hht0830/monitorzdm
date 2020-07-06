@@ -1,6 +1,6 @@
 package monitorzdm;
 
-import java.awt.Color;
+import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
@@ -43,7 +43,7 @@ public class Main {
 		return image2;
 	}
 
-	public static void setpic(JLabel l[], int index) {
+	public static void setpic(JLabel l[], JLabel l1[],JLabel l2[],JLabel l3[],int index) {
 		ResultSet rs = null;
 		
 		try {
@@ -56,16 +56,24 @@ public class Main {
 			int id[]=new int[24];
 			String pic[]=new String[24];
 			String url[]=new String[24];
+			String title[]=new String[24];
+			String title_2[]=new String[24];
+			float good[]=new float[24];
+			float bad[]=new float[24];
 			while (rs.next()) {
 				int row = rs.getRow()-1;
 				id[row]=rs.getInt("id");
 				pic[row]=rs.getString("pic_url");
 				url[row]=rs.getString("url");
+				title[row]=rs.getString("title");
+				title_2[row]=rs.getString("title_2");
+				good[row]=rs.getFloat("good");
+				bad[row]=rs.getFloat("bad");
 				lastindex=rs.getInt("id");
 				Thread t = new Thread() {
 					public void run() {
 						try {
-						System.out.println(id[row] + "\t" + pic[row] + "\t" + url[row]);
+						System.out.println(id[row] + "\t" + pic[row] + "\t" + url[row]+ "\t" + title[row]);
 						URL picurl = new URL(pic[row]);
 						BufferedImage image = ImageIO.read(picurl);
 						ImageIcon im = new ImageIcon(image);
@@ -73,6 +81,8 @@ public class Main {
 
 						// 设置ImageIcon
 						l[row].setIcon(im);
+						l1[row].setText(title[row]);
+						l2[row].setText(title_2[row]+"值率："+ good[row]/(good[row]+bad[row])*100+"%");
 						l[row].removeMouseListener(mousel[row]);
 						MouseListener ml=new MouseListener() {
 
@@ -135,8 +145,12 @@ public class Main {
 		}
 		JFrame f = new JFrame("什么值得买TOP3小时");
 		JLabel l[] = new JLabel[24];
+		JLabel l1[] = new JLabel[24];
+		JLabel l2[] = new JLabel[24];
+		JLabel l3[] = new JLabel[24];
 		// 设置默认成员id
         JPanel p1 = new JPanel();
+        JPanel p11[] = new JPanel[24];
         p1.setLayout(new GridLayout(8, 3));
         // 设置面板大小
         p1.setBounds(50, 25, 1080, 1200);
@@ -241,7 +255,7 @@ public class Main {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				setpic(l, lastindex);
+				setpic(l, l1,l2,l3,lastindex);
 			}
 
 			@Override
@@ -274,9 +288,16 @@ public class Main {
 
 		for (int i = 0; i < 24; i++) {
 			l[i] = new JLabel();
-			
+			l1[i] = new JLabel();
+			l2[i] = new JLabel();
+			l3[i] = new JLabel();
+			p11[i]= new JPanel();
+			p11[i].setLayout(new BorderLayout());
 //			l[i].setBounds(200 * i + 50, 50, 150, 150);
-			p1.add(l[i]);
+			p11[i].add(l[i],BorderLayout.WEST);
+			p11[i].add(l1[i]);
+			p11[i].add(l2[i],BorderLayout.NORTH);
+			p1.add(p11[i]);
 		}
 /*		for (int i = 0; i < 5; i++) {
 			l[i + 5] = new JLabel();
@@ -284,7 +305,7 @@ public class Main {
 			p1.add(l[i + 5]);
 		}
 		*/
-		setpic(l, lastindex);
+		setpic(l, l1,l2,l3,lastindex);
 //		p1.add(b);
 
 	}
