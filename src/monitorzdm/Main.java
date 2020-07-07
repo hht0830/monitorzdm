@@ -1,6 +1,7 @@
 package monitorzdm;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
@@ -82,7 +83,7 @@ public class Main {
 		}
 	}
 
-	public static void setpic(JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], int index) {
+	public static void setpic(JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], JProgressBar bar[],int index) {
 		ResultSet rs = null;
 		try {
 			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME, JDBCConf.PASSWORD);
@@ -98,6 +99,12 @@ public class Main {
 			String title_2[] = new String[24];
 			float good[] = new float[24];
 			float bad[] = new float[24];
+			rs.last();
+			lastindex = rs.getInt("id");
+			if(index == lastindex)
+				return;
+			rs.beforeFirst();
+			System.out.println("index="+lastindex);
 			while (rs.next()) {
 				int row = rs.getRow() - 1;
 				id[row] = rs.getInt("id");
@@ -107,7 +114,7 @@ public class Main {
 				title_2[row] = rs.getString("title_2");
 				good[row] = rs.getFloat("good");
 				bad[row] = rs.getFloat("bad");
-				lastindex = rs.getInt("id");
+				
 				Thread t = new Thread() {
 					public void run() {
 						try {
@@ -119,9 +126,17 @@ public class Main {
 
 							// 设置ImageIcon
 							l[row].setIcon(im);
-							l1[row].setText(title[row]);
+							l1[row].setText("<html>"+title[row]+"</html>");
+							l1[row].setFont(new java.awt.Font("Dialog", 1, 15));
 							l2[row].setText(title_2[row]);
+							l2[row].setFont(new java.awt.Font("Dialog", 1, 15));
 							l3[row].setText("值率：" +(int)(good[row] / (good[row] + bad[row]) * 100) + "%");
+							if((good[row] / (good[row] + bad[row])*100>70))
+							{
+									l3[row].setForeground(Color.red);
+									l3[row].setFont(new java.awt.Font("Dialog", 1, 20));
+							}
+							bar[row].setValue((int)(good[row] / (good[row] + bad[row]) * 100));
 							l[row].removeMouseListener(mousel[row]);
 							MouseListener ml = new MouseListener() {
 
@@ -191,6 +206,7 @@ public class Main {
 		JLabel l1[] = new JLabel[24];
 		JLabel l2[] = new JLabel[24];
 		JLabel l3[] = new JLabel[24];
+		JProgressBar bar[]=new JProgressBar[24];
 		// 设置默认成员id
 		JPanel p1 = new JPanel();
 		JPanel p11[] = new JPanel[24];
@@ -297,7 +313,7 @@ public class Main {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				setpic(l, l1, l2, l3, lastindex);
+				setpic(l, l1, l2, l3,bar, lastindex);
 			}
 
 			@Override
@@ -335,12 +351,12 @@ public class Main {
 			l3[i] = new JLabel();
 			p11[i] = new JPanel();
 			p111[i] = new JPanel();
+			bar[i] = new JProgressBar();
 			p11[i].setLayout(new BorderLayout());
 			p111[i].setLayout(new BorderLayout());
 //			l[i].setBounds(200 * i + 50, 50, 150, 150);
 			p11[i].add(l[i], BorderLayout.WEST);
-			p11[i].add(new JLabel(), BorderLayout.NORTH);
-			p11[i].add(new JProgressBar(), BorderLayout.SOUTH);
+			p11[i].add(bar[i], BorderLayout.SOUTH);
 			p11[i].add(p111[i]);
 			p111[i].add(l1[i],BorderLayout.NORTH);
 			p111[i].add(l2[i]);
@@ -352,9 +368,9 @@ public class Main {
 		 * 5].setBounds(200 * i + 50, 350, 150, 150); p1.add(l[i + 5]); }
 		 */
 		while (true) {
-			setpic(l, l1, l2, l3, lastindex);
+			setpic(l, l1, l2, l3,bar, lastindex);
 			try {
-				System.out.println("index="+lastindex);
+				System.out.println("sleep5s");
 				TimeUnit.SECONDS.sleep(5);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
