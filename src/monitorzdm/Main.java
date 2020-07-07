@@ -36,7 +36,8 @@ import javax.swing.JProgressBar;
 public class Main {
 	static MouseListener mousel[] = new MouseListener[24];
 	static int lastindex = 0;
-	static File musicfile=new File("src/monitorzdm/ding.wav");
+	static File musicfile = new File("src/monitorzdm/ding.wav");
+
 	public static void openURL(String url) {
 		try {
 			String command = "cmd /c start  ";
@@ -83,13 +84,13 @@ public class Main {
 		}
 	}
 
-	public static void setpic(JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], JProgressBar bar[],int index) {
+	public static void setpic(JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], JProgressBar bar[], int index) {
 		ResultSet rs = null;
 		try {
 			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME, JDBCConf.PASSWORD);
 			String sql = "select * from top3 ORDER BY id DESC LIMIT 24";
 			PreparedStatement ps = c.prepareStatement(sql);
-			
+
 			ps.execute();
 			rs = ps.executeQuery();
 			int id[] = new int[24];
@@ -101,10 +102,10 @@ public class Main {
 			float bad[] = new float[24];
 			rs.last();
 			lastindex = rs.getInt("id");
-			if(index == lastindex)
+			if (index == lastindex)
 				return;
 			rs.beforeFirst();
-			System.out.println("index="+lastindex);
+			System.out.println("index=" + lastindex);
 			while (rs.next()) {
 				int row = rs.getRow() - 1;
 				id[row] = rs.getInt("id");
@@ -114,11 +115,12 @@ public class Main {
 				title_2[row] = rs.getString("title_2");
 				good[row] = rs.getFloat("good");
 				bad[row] = rs.getFloat("bad");
-				
+
 				Thread t = new Thread() {
 					public void run() {
 						try {
-							//System.out.println(id[row] + "\t" + pic[row] + "\t" + url[row] + "\t" + title[row]);
+							// System.out.println(id[row] + "\t" + pic[row] + "\t" + url[row] + "\t" +
+							// title[row]);
 							URL picurl = new URL(pic[row]);
 							BufferedImage image = ImageIO.read(picurl);
 							ImageIcon im = new ImageIcon(image);
@@ -126,17 +128,19 @@ public class Main {
 
 							// 设置ImageIcon
 							l[row].setIcon(im);
-							l1[row].setText("<html>"+title[row]+"</html>");
+							l1[row].setText("<html>" + title[row] + "</html>");
 							l1[row].setFont(new java.awt.Font("Dialog", 1, 15));
 							l2[row].setText(title_2[row]);
 							l2[row].setFont(new java.awt.Font("Dialog", 1, 15));
-							l3[row].setText("值率：" +(int)(good[row] / (good[row] + bad[row]) * 100) + "%");
-							if((good[row] / (good[row] + bad[row])*100>70))
-							{
-									l3[row].setForeground(Color.red);
-									l3[row].setFont(new java.awt.Font("Dialog", 1, 20));
+							l3[row].setText("值率：" + (int) (good[row] / (good[row] + bad[row]) * 100) + "%");
+							if ((good[row] / (good[row] + bad[row]) * 100 > 70)) {
+								l3[row].setForeground(Color.red);
+								l3[row].setFont(new java.awt.Font("Dialog", 1, 20));
+							} else {
+								l3[row].setForeground(Color.green);
+								l3[row].setFont(new java.awt.Font("Dialog", 1, 15));
 							}
-							bar[row].setValue((int)(good[row] / (good[row] + bad[row]) * 100));
+							bar[row].setValue((int) (good[row] / (good[row] + bad[row]) * 100));
 							l[row].removeMouseListener(mousel[row]);
 							MouseListener ml = new MouseListener() {
 
@@ -188,7 +192,7 @@ public class Main {
 			// TODO: handle exception
 		}
 		if (index != lastindex) {
-			System.out.println("播放音乐"+musicfile.getAbsolutePath());
+			System.out.println("播放音乐" + musicfile.getAbsolutePath());
 			playmusic(musicfile);
 		}
 	}
@@ -206,7 +210,7 @@ public class Main {
 		JLabel l1[] = new JLabel[24];
 		JLabel l2[] = new JLabel[24];
 		JLabel l3[] = new JLabel[24];
-		JProgressBar bar[]=new JProgressBar[24];
+		JProgressBar bar[] = new JProgressBar[24];
 		// 设置默认成员id
 		JPanel p1 = new JPanel();
 		JPanel p11[] = new JPanel[24];
@@ -313,7 +317,7 @@ public class Main {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				setpic(l, l1, l2, l3,bar, lastindex);
+				setpic(l, l1, l2, l3, bar, lastindex);
 			}
 
 			@Override
@@ -358,9 +362,9 @@ public class Main {
 			p11[i].add(l[i], BorderLayout.WEST);
 			p11[i].add(bar[i], BorderLayout.SOUTH);
 			p11[i].add(p111[i]);
-			p111[i].add(l1[i],BorderLayout.NORTH);
+			p111[i].add(l1[i], BorderLayout.NORTH);
 			p111[i].add(l2[i]);
-			p111[i].add(l3[i],BorderLayout.SOUTH);
+			p111[i].add(l3[i], BorderLayout.SOUTH);
 			p1.add(p11[i]);
 		}
 		/*
@@ -368,7 +372,7 @@ public class Main {
 		 * 5].setBounds(200 * i + 50, 350, 150, 150); p1.add(l[i + 5]); }
 		 */
 		while (true) {
-			setpic(l, l1, l2, l3,bar, lastindex);
+			setpic(l, l1, l2, l3, bar, lastindex);
 			try {
 				System.out.println("sleep5s");
 				TimeUnit.SECONDS.sleep(5);
