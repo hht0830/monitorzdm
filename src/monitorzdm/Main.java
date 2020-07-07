@@ -8,22 +8,34 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 
 public class Main {
 	static MouseListener mousel[] = new MouseListener[24];
-	static int lastindex=0;
+	static int lastindex = 0;
+	static File musicfile=new File("src/monitorzdm/ding.wav");
 	public static void openURL(String url) {
 		try {
 			String command = "cmd /c start  ";
@@ -43,83 +55,110 @@ public class Main {
 		return image2;
 	}
 
-	public static void setpic(JLabel l[], JLabel l1[],JLabel l2[],JLabel l3[],int index) {
-		ResultSet rs = null;
-		
+	public static void playmusic(File a) {
+
+		AudioInputStream as;
 		try {
-			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME,JDBCConf.PASSWORD);
+			as = AudioSystem.getAudioInputStream(a);// 音频文件在项目根目录的img文件夹下
+			AudioFormat format = as.getFormat();
+			SourceDataLine sdl = null;
+			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+			sdl = (SourceDataLine) AudioSystem.getLine(info);
+			sdl.open(format);
+			sdl.start();
+			int nBytesRead = 0;
+			byte[] abData = new byte[512];
+			while (nBytesRead != -1) {
+				nBytesRead = as.read(abData, 0, abData.length);
+				if (nBytesRead >= 0)
+					sdl.write(abData, 0, nBytesRead);
+			}
+			// 关闭SourceDataLine
+			sdl.drain();
+			sdl.close();
+		} catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void setpic(JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], int index) {
+		ResultSet rs = null;
+		try {
+			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME, JDBCConf.PASSWORD);
 			String sql = "select * from top3 ORDER BY id DESC LIMIT 24";
 			PreparedStatement ps = c.prepareStatement(sql);
-
+			
 			ps.execute();
 			rs = ps.executeQuery();
-			int id[]=new int[24];
-			String pic[]=new String[24];
-			String url[]=new String[24];
-			String title[]=new String[24];
-			String title_2[]=new String[24];
-			float good[]=new float[24];
-			float bad[]=new float[24];
+			int id[] = new int[24];
+			String pic[] = new String[24];
+			String url[] = new String[24];
+			String title[] = new String[24];
+			String title_2[] = new String[24];
+			float good[] = new float[24];
+			float bad[] = new float[24];
 			while (rs.next()) {
-				int row = rs.getRow()-1;
-				id[row]=rs.getInt("id");
-				pic[row]=rs.getString("pic_url");
-				url[row]=rs.getString("url");
-				title[row]=rs.getString("title");
-				title_2[row]=rs.getString("title_2");
-				good[row]=rs.getFloat("good");
-				bad[row]=rs.getFloat("bad");
-				lastindex=rs.getInt("id");
+				int row = rs.getRow() - 1;
+				id[row] = rs.getInt("id");
+				pic[row] = rs.getString("pic_url");
+				url[row] = rs.getString("url");
+				title[row] = rs.getString("title");
+				title_2[row] = rs.getString("title_2");
+				good[row] = rs.getFloat("good");
+				bad[row] = rs.getFloat("bad");
+				lastindex = rs.getInt("id");
 				Thread t = new Thread() {
 					public void run() {
 						try {
-						System.out.println(id[row] + "\t" + pic[row] + "\t" + url[row]+ "\t" + title[row]);
-						URL picurl = new URL(pic[row]);
-						BufferedImage image = ImageIO.read(picurl);
-						ImageIcon im = new ImageIcon(image);
-						im = change(im);
+							//System.out.println(id[row] + "\t" + pic[row] + "\t" + url[row] + "\t" + title[row]);
+							URL picurl = new URL(pic[row]);
+							BufferedImage image = ImageIO.read(picurl);
+							ImageIcon im = new ImageIcon(image);
+							im = change(im);
 
-						// 设置ImageIcon
-						l[row].setIcon(im);
-						l1[row].setText(title[row]);
-						l2[row].setText(title_2[row]+"值率："+ (good[row]/(good[row]+bad[row])*100)+"%");
-						l[row].removeMouseListener(mousel[row]);
-						MouseListener ml=new MouseListener() {
+							// 设置ImageIcon
+							l[row].setIcon(im);
+							l1[row].setText(title[row]);
+							l2[row].setText(title_2[row]);
+							l3[row].setText("值率：" +(int)(good[row] / (good[row] + bad[row]) * 100) + "%");
+							l[row].removeMouseListener(mousel[row]);
+							MouseListener ml = new MouseListener() {
 
-							@Override
-							public void mouseReleased(MouseEvent e) {
-								// TODO Auto-generated method stub
+								@Override
+								public void mouseReleased(MouseEvent e) {
+									// TODO Auto-generated method stub
 
-							}
+								}
 
-							@Override
-							public void mousePressed(MouseEvent e) {
-								// TODO Auto-generated method stub
-								openURL(url[row]);
-							}
+								@Override
+								public void mousePressed(MouseEvent e) {
+									// TODO Auto-generated method stub
+									openURL(url[row]);
+								}
 
-							@Override
-							public void mouseExited(MouseEvent e) {
-								// TODO Auto-generated method stub
+								@Override
+								public void mouseExited(MouseEvent e) {
+									// TODO Auto-generated method stub
 
-							}
+								}
 
-							@Override
-							public void mouseEntered(MouseEvent e) {
-								// TODO Auto-generated method stub
+								@Override
+								public void mouseEntered(MouseEvent e) {
+									// TODO Auto-generated method stub
 
-							}
+								}
 
-							@Override
-							public void mouseClicked(MouseEvent e) {
-								// TODO Auto-generated method stub
+								@Override
+								public void mouseClicked(MouseEvent e) {
+									// TODO Auto-generated method stub
 
-							}
-							
-						};
-						mousel[row]=ml;
-						
-						l[row].addMouseListener(ml);
+								}
+
+							};
+							mousel[row] = ml;
+
+							l[row].addMouseListener(ml);
 						} catch (Exception e) {
 							e.printStackTrace();
 							// TODO: handle exception
@@ -132,6 +171,10 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 			// TODO: handle exception
+		}
+		if (index != lastindex) {
+			System.out.println("播放音乐"+musicfile.getAbsolutePath());
+			playmusic(musicfile);
 		}
 	}
 
@@ -149,24 +192,23 @@ public class Main {
 		JLabel l2[] = new JLabel[24];
 		JLabel l3[] = new JLabel[24];
 		// 设置默认成员id
-        JPanel p1 = new JPanel();
-        JPanel p11[] = new JPanel[24];
-        p1.setLayout(new GridLayout(8, 3));
-        // 设置面板大小
-        p1.setBounds(50, 25, 1080, 1200);
-        // 设置面板背景颜色
+		JPanel p1 = new JPanel();
+		JPanel p11[] = new JPanel[24];
+		JPanel p111[] = new JPanel[24];
+		p1.setLayout(new GridLayout(8, 3));
+		// 设置面板大小
+		p1.setBounds(50, 25, 1080, 1200);
+		// 设置面板背景颜色
 //      p1.setBackground(Color.GRAY);
-        
-        
+
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// 主窗体设置大小
 //		f.setSize(1080, 700);
 
-
 		// 主窗体中的组件设置为绝对定位
 		f.setLayout(null);
-		f.setBounds(600,80, 1200, 1300);
+		f.setBounds(600, 80, 1200, 1300);
 		// 按钮组件
 		JButton b = new JButton("刷新");
 
@@ -255,7 +297,7 @@ public class Main {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				setpic(l, l1,l2,l3,lastindex);
+				setpic(l, l1, l2, l3, lastindex);
 			}
 
 			@Override
@@ -277,7 +319,7 @@ public class Main {
 			}
 		});
 		// 把按钮加入到主窗体中
-		
+
 		f.add(p1);
 
 		// 关闭窗体的时候，退出程序
@@ -291,21 +333,34 @@ public class Main {
 			l1[i] = new JLabel();
 			l2[i] = new JLabel();
 			l3[i] = new JLabel();
-			p11[i]= new JPanel();
+			p11[i] = new JPanel();
+			p111[i] = new JPanel();
 			p11[i].setLayout(new BorderLayout());
+			p111[i].setLayout(new BorderLayout());
 //			l[i].setBounds(200 * i + 50, 50, 150, 150);
-			p11[i].add(l[i],BorderLayout.WEST);
-			p11[i].add(l1[i]);
-			p11[i].add(l2[i],BorderLayout.NORTH);
+			p11[i].add(l[i], BorderLayout.WEST);
+			p11[i].add(new JLabel(), BorderLayout.NORTH);
+			p11[i].add(new JProgressBar(), BorderLayout.SOUTH);
+			p11[i].add(p111[i]);
+			p111[i].add(l1[i],BorderLayout.NORTH);
+			p111[i].add(l2[i]);
+			p111[i].add(l3[i],BorderLayout.SOUTH);
 			p1.add(p11[i]);
 		}
-/*		for (int i = 0; i < 5; i++) {
-			l[i + 5] = new JLabel();
-//			l[i + 5].setBounds(200 * i + 50, 350, 150, 150);
-			p1.add(l[i + 5]);
+		/*
+		 * for (int i = 0; i < 5; i++) { l[i + 5] = new JLabel(); // l[i +
+		 * 5].setBounds(200 * i + 50, 350, 150, 150); p1.add(l[i + 5]); }
+		 */
+		while (true) {
+			setpic(l, l1, l2, l3, lastindex);
+			try {
+				System.out.println("index="+lastindex);
+				TimeUnit.SECONDS.sleep(5);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
-		*/
-		setpic(l, l1,l2,l3,lastindex);
 //		p1.add(b);
 
 	}
