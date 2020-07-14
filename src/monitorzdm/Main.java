@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
@@ -37,7 +38,7 @@ public class Main {
 	static MouseListener mousel[] = new MouseListener[24];
 	static int lastindex = 0;
 	static File musicfile = new File("src/monitorzdm/ding.wav");
-
+	static Connection c = null;
 	public static void openURL(String url) {
 		try {
 			String command = "cmd /c start  ";
@@ -84,13 +85,11 @@ public class Main {
 		}
 	}
 
-	public static void setpic(JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], JProgressBar bar[], int index) {
+	public static void setpic(Connection c,JLabel l[], JLabel l1[], JLabel l2[], JLabel l3[], JProgressBar bar[], int index) {
 		ResultSet rs = null;
 		try {
-			Connection c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME, JDBCConf.PASSWORD);
 			String sql = "select * from top3 ORDER BY id DESC LIMIT 24";
 			PreparedStatement ps = c.prepareStatement(sql);
-
 			ps.execute();
 			rs = ps.executeQuery();
 			int id[] = new int[24];
@@ -190,6 +189,8 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 			// TODO: handle exception
+		}finally {
+			
 		}
 		if (index != lastindex) {
 			System.out.println("播放音乐" + musicfile.getAbsolutePath());
@@ -199,12 +200,18 @@ public class Main {
 
 	public static void main(String[] args) {
 		// 连接数据库获得结果集
+		
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
+			c = DriverManager.getConnection(JDBCConf.JDBCURL, JDBCConf.USERNAME, JDBCConf.PASSWORD);
 		} catch (ClassNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
+		
 		JFrame f = new JFrame("什么值得买TOP3小时");
 		JLabel l[] = new JLabel[24];
 		JLabel l1[] = new JLabel[24];
@@ -317,7 +324,7 @@ public class Main {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				setpic(l, l1, l2, l3, bar, lastindex);
+				setpic(c,l, l1, l2, l3, bar, lastindex);
 			}
 
 			@Override
@@ -372,7 +379,7 @@ public class Main {
 		 * 5].setBounds(200 * i + 50, 350, 150, 150); p1.add(l[i + 5]); }
 		 */
 		while (true) {
-			setpic(l, l1, l2, l3, bar, lastindex);
+			setpic(c,l, l1, l2, l3, bar, lastindex);
 			try {
 				System.out.println("sleep5s");
 				TimeUnit.SECONDS.sleep(5);
